@@ -26,7 +26,9 @@ end_date = '2024-09-30'    # Replace with your end date
 class Expense:
     date: str
     amount: float
+    currency_code: str
     category: str
+    budget: str
     tags: str
     account_from: str
     account_to: str
@@ -64,14 +66,16 @@ def write_to_csv(expenses, filename='expenses.csv'):
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         # Write header
-        writer.writerow(['Date', 'Amount', 'Category', 'Tags', 'Account From', 'Account To', 'Description', 'Note', 'External URL'])
+        writer.writerow(['Date', 'Amount', 'Currency', 'Category', 'Budget', 'Tags', 'Account From', 'Account To', 'Description', 'Note', 'External URL'])
 
         for expense in expenses:
             for transaction in expense['attributes']['transactions']:
                 expense = Expense(
                     date=transaction['date'],
                     amount=transaction['amount'],
+                    currency_code=transaction['currency_code'],
                     category=transaction['category_name'],
+                    budget=transaction['budget_name'],
                     tags=', '.join([tag for tag in transaction['tags']]),
                     account_from=transaction['source_name'],
                     account_to=transaction['destination_name'],
@@ -81,19 +85,7 @@ def write_to_csv(expenses, filename='expenses.csv'):
                 )
 
                 # Write row
-                writer.writerow(
-                    [
-                        expense.date,
-                        expense.amount,
-                        expense.category,
-                        expense.tags,
-                        expense.account_from,
-                        expense.account_to,
-                        expense.description,
-                        expense.note,
-                        expense.external_url
-                    ]
-                )
+                writer.writerow(expense.__dict__.values())
 
 
 if __name__ == '__main__':
