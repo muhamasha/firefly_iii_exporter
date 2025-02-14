@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 import requests
 import csv
 from dotenv import load_dotenv
@@ -18,8 +19,10 @@ headers = {
 }
 
 # Define the date range for fetching expenses
-start_date = '2024-07-01'  # Replace with your start date
-end_date = '2024-09-30'    # Replace with your end date
+start_date = '2024-10-01'  # Replace with your start date
+end_date = '2024-12-31'    # Replace with your end date
+
+file_name = 'expenses.csv'
 
 
 @dataclass
@@ -50,11 +53,12 @@ def fetch_expenses(start_date, end_date):
     while True:
         response = requests.get(url, headers=headers, params=params)
         if response.status_code != 200:
-            print(f"Error fetching expenses: {response.status_code} - {response.text}")
+            logging.ERROR(f"Error fetching expenses: {response.status_code} - {response.text}")
             break
 
         data = response.json()
         expenses.extend(data['data'])
+        logging.info(f"Fetched page {data['meta']['pagination']['current_page']} of {data['meta']['pagination']['total_pages']}")
 
         if data['meta']['pagination']['current_page'] == data['meta']['pagination']['total_pages']:
             break
@@ -90,9 +94,12 @@ def write_to_csv(expenses, filename='expenses.csv'):
 
 if __name__ == '__main__':
 
+    # Setup logging to print logs to console
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
     expenses = fetch_expenses(start_date, end_date)
     if expenses:
         write_to_csv(expenses)
-        print(f"Expenses exported to expenses.csv")
+        logging.info(f"Expenses exported to {file_name}")
     else:
-        print("No expenses found in the given date range.")
+        logging.info("No expenses found in the given date range.")
