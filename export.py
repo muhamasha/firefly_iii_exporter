@@ -19,8 +19,8 @@ headers = {
 }
 
 # Define the date range for fetching expenses
-start_date = '2024-10-01'  # Replace with your start date
-end_date = '2024-12-31'    # Replace with your end date
+start_date = '2024-10-01'  # Replace with your start date (including this date)
+end_date = '2024-12-31'    # Replace with your end date (including this date)
 
 file_name = 'expenses.csv'
 
