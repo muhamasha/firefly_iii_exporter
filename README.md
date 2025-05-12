@@ -13,7 +13,7 @@ This repo includes a script that exports all transactions from Firefly III to a 
 3. Run the script
 
     ```bash
-    poetry run python exporter.py
+    poetry run python export.py
     ```
 
 ## Configuration
