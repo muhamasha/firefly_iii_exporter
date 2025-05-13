@@ -19,15 +19,19 @@ headers = {
 }
 
 # Define the date range for fetching expenses
-start_date = '2024-10-01'  # Replace with your start date (including this date)
-end_date = '2024-12-31'    # Replace with your end date (including this date)
+start_date = '2024-07-01'  # Replace with your start date (including this date)
+end_date = '2025-06-30'    # Replace with your end date (including this date)
 
 file_name = 'expenses.csv'
 
+class FetchTypes:
+    EXPENSES = 'withdrawal'
+    ALL = 'transactions'
 
 @dataclass
 class Expense:
     date: str
+    transaction_type: str
     amount: float
     currency_code: str
     category: str
@@ -40,13 +44,13 @@ class Expense:
     external_url: str
 
 
-def fetch_expenses(start_date, end_date):
-    expenses = []
+def fetch(start_date, end_date, type: FetchTypes = FetchTypes.ALL):
+    transactions = []
     url = f"{BASE_URL}transactions"
     params = {
         'start': start_date,
         'end': end_date,
-        'type': 'withdrawal',  # Expense type
+        'type': type,
         'page': 1,
     }
 
@@ -57,25 +61,26 @@ def fetch_expenses(start_date, end_date):
             break
 
         data = response.json()
-        expenses.extend(data['data'])
+        transactions.extend(data['data'])
         logging.info(f"Fetched page {data['meta']['pagination']['current_page']} of {data['meta']['pagination']['total_pages']}")
 
         if data['meta']['pagination']['current_page'] == data['meta']['pagination']['total_pages']:
             break
         params['page'] += 1
 
-    return expenses
+    return transactions
 
 def write_to_csv(expenses, filename='expenses.csv'):
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         # Write header
-        writer.writerow(['Date', 'Amount', 'Currency', 'Category', 'Budget', 'Tags', 'Account From', 'Account To', 'Description', 'Note', 'External URL'])
+        writer.writerow(['Date', 'Type', 'Amount', 'Currency', 'Category', 'Budget', 'Tags', 'Account From', 'Account To', 'Description', 'Note', 'External URL'])
 
         for expense in expenses:
             for transaction in expense['attributes']['transactions']:
                 expense = Expense(
                     date=transaction['date'],
+                    transaction_type=transaction['type'],
                     amount=transaction['amount'],
                     currency_code=transaction['currency_code'],
                     category=transaction['category_name'],
@@ -97,7 +102,7 @@ if __name__ == '__main__':
     # Setup logging to print logs to console
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    expenses = fetch_expenses(start_date, end_date)
+    expenses = fetch(start_date, end_date)
     if expenses:
         write_to_csv(expenses)
         logging.info(f"Expenses exported to {file_name}")
